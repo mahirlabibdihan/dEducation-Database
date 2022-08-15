@@ -1,4 +1,18 @@
 ---- USER ---- 
+DELETE FROM Notifications;
+DELETE FROM Notices;
+DELETE FROM EnrolledIn;
+DELETE FROM Batches;
+DELETE FROM Courses;
+DELETE FROM MemberOf;
+DELETE FROM Coachings;
+DELETE FROM Offers;
+DELETE FROM Applies;
+DELETE FROM Tution_Posts;
+DELETE FROM Tutions;
+DELETE FROM Educations;
+DELETE FROM Tutors;
+DELETE FROM Students;
 DELETE FROM Users;
 INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
 VALUES('Mahir Labib Dihan','student1.jpg','mahirlabibdihan@gmail.com','$2a$10$8GBsWOPaNtD5gUZu1bNB7uCh0mk3Y6NY25SnGTr1mbuWwKsFPYY5G','STUDENT','Male','01851953433',to_date('19-AUG-01','DD-MON-RR'));
@@ -18,7 +32,7 @@ VALUES ('Nafis Tahmid','tutor12.jpg','1905002@gmail.com','$2a$10$GgiK3IOV9GluNyO
 INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
 VALUES ('Asif Azad','tutor9.jpg','1905004@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','TUTOR','Male','01891556749',to_date('01-JAN-00','DD-MON-RR'));
 INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
-VALUES ('Md. Ashrafur Rahman Khan','tutor14.jpg','1905005@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','TUTOR','Male','01478066006',to_date('01-JAN-00','DD-MON-RR'));
+VALUES ('Md. Ashrafur Rahman','tutor14.jpg','1905005@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','TUTOR','Male','01478066006',to_date('01-JAN-00','DD-MON-RR'));
 INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
 VALUES ('Shattik Islam Rhythm','tutor11.jpg','1905008@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','TUTOR','Male','01881536649',to_date('01-JAN-00','DD-MON-RR'));
 INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
@@ -52,10 +66,18 @@ VALUES ('Md. Shafiul Haque','tutor20.jpg','1905102@gmail.com','$2a$10$GgiK3IOV9G
 INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
 VALUES ('Rayan Islam','tutor18.jpg','1905106@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','TUTOR','Male','01478066006',to_date('01-JAN-00','DD-MON-RR'));
 INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
-VALUES ('Saad Mohammad Rafid Pial','tutor15.jpg','1905112@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','TUTOR','Male','01478066006',to_date('01-JAN-00','DD-MON-RR'));
+VALUES ('Saad Mohammad Rafid','tutor15.jpg','1905112@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','TUTOR','Male','01478066006',to_date('01-JAN-00','DD-MON-RR'));
 INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
 VALUES ('Tahsin Wahid','tutor19.jpg','1905115@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','TUTOR','Male','01478066006',to_date('01-JAN-00','DD-MON-RR'));
 
+INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
+VALUES ('Md. Jarif Ahsan','male_student.jpg','1905092@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','STUDENT','Male','01478066006',to_date('01-JAN-00','DD-MON-RR'));
+INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
+VALUES ('Lara Khanom','female_student.jpg','1905062@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','STUDENT','Female','01478066006',to_date('01-JAN-00','DD-MON-RR'));
+INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
+VALUES ('Md. Labid Al Nahiyan','male_student.jpg','1905110@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','STUDENT','Male','01478066006',to_date('01-JAN-00','DD-MON-RR'));
+INSERT INTO Users(name,image,email,pass,role,gender,phone_number,date_of_birth)
+VALUES ('Kazi Istiak Uddin Torique','male_student.jpg','1905104@gmail.com','$2a$10$GgiK3IOV9GluNyOnl.P0xO/jnfIudswCvwdKLFm0SKd39sHi4Misq','STUDENT','Male','01478066006',to_date('01-JAN-00','DD-MON-RR'));
 
 ----STUDENT----
 DELETE FROM Students;
@@ -70,7 +92,14 @@ INSERT INTO Students (user_id,institution,version,class,address)
 VALUES (13,'CGC','Bangla Medium','Class 12','Bogalake, Bandarban');
 INSERT INTO Students (user_id,institution,version,class,address) 
 VALUES (14,'CVC','Bangla Medium','Class 12','Cumilla');
-
+INSERT INTO Students (user_id,institution,version,class,address) 
+VALUES (27,'NDC','Bangla Medium','Class 12','Narayanganj');
+INSERT INTO Students (user_id,institution,version,class,address) 
+VALUES (28,'Vidyamayee','Bangla Medium','Class 10','Mymensingh');
+INSERT INTO Students (user_id,institution,version,class,address) 
+VALUES (29,'NDC','Bangla Medium','Class 12','Mahmud Mansion, Cumilla');
+INSERT INTO Students (user_id,institution,version,class,address) 
+VALUES (30,'NDC','Bangla Medium','Class 12','Bogalake, Bandarban');
 
 ----TUTOR----
 DELETE FROM Tutors;
@@ -117,38 +146,38 @@ VALUES (26,'Math','Available',3,10000);
 
 ---- TUTION ----
 DELETE FROM Tutions;
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Math',10000,3,'Offline');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Physics',5000,3,'Offline');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Math',8000,3,'Offline');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Math, Physics, Chemistry',10000,4,'Online');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Bangla, English',5000,4,'Offline');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Math, Physics, Chemistry',10000,4,'Online');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('C++',5000,3,'Online');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Math, Physics, Chemistry',10000,3,'Online');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('English',8000,2,'Offline');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Bangla',5000,3,'Online');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Math',10000,3,'Offline');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Math',12000,7,'Online');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('English, Bangla',5000,5,'Offline');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Math',10000,3,'Offline');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('Math',12000,7,'Online');
-INSERT INTO Tutions (subjects,salary,days_per_week,type) 
-VALUES ('English, Bangla',5000,5,'Offline');
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('Math',10000,3,'Offline','Sun,Tue,Thu','2:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('Physics',5000,3,'Offline','Sun,Tue,Thu','1:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('Math',8000,3,'Offline','Sun,Tue,Thu','3:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date)  
+VALUES ('Math, Physics, Chemistry',10000,4,'Online','Sun,Tue,Thu','1:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('Bangla, English',5000,4,'Offline','Sun,Tue,Thu','4:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('Math, Physics, Chemistry',10000,4,'Online','Sun,Tue,Thu','1:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date)  
+VALUES ('C++',5000,3,'Online','Sun,Tue,Thu','1:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('Math, Physics, Chemistry',10000,3,'Online','Sun,Tue,Thu','5:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('English',8000,2,'Offline','Sun,Tue,Thu','6:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('Bangla',5000,3,'Online','Sun,Tue,Thu','7:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('Math',10000,3,'Offline','Sun,Tue,Thu','8:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('Math',12000,7,'Online','Sun,Tue,Thu','12:00 PM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('English, Bangla',5000,5,'Offline','Sun,Tue,Thu','11:00 AM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('Math',10000,3,'Offline','Sun,Tue,Thu','10:00 AM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('Math',12000,7,'Online','Sun,Tue,Thu','9:00 AM',to_date('20-AUG-19','DD-MON-RR'));
+INSERT INTO Tutions (subjects,salary,days_per_week,type,class_days,class_time,start_date) 
+VALUES ('English, Bangla',5000,5,'Offline','Sun,Tue,Thu','8:00 AM',to_date('20-AUG-19','DD-MON-RR'));
 
 
 ---- TUTION_POST ----
@@ -158,38 +187,59 @@ VALUES (1,1,'Male');
 INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender) 
 VALUES (1,2,'Female');
 INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender) 
-VALUES (1,3,'Male');
+VALUES (2,3,'Male');
 INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender) 
-VALUES (1,4,'Male');
+VALUES (2,4,'Male');
 INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender) 
-VALUES (2,5,'Male');
+VALUES (3,5,'Male');
 INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender) 
-VALUES (2,6,'Male');
+VALUES (3,6,'Male');
 INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender) 
-VALUES (2,7,'Female');
+VALUES (12,7,'Female');
+INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender) 
+VALUES (12,8,'Male');
+INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender) 
+VALUES (13,9,'Male');
+INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender) 
+VALUES (13,10,'Male');
+INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender) 
+VALUES (14,11,'Male');
+INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender) 
+VALUES (14,12,'Female');
 
 ---- APPLY ----
 DELETE FROM Applies;
 INSERT INTO Applies (tutor_id,POST_ID) 
 VALUES (4,1);
 INSERT INTO Applies (tutor_id,POST_ID) 
+VALUES (7,1);
+INSERT INTO Applies (tutor_id,POST_ID) 
+VALUES (8,1);
+INSERT INTO Applies (tutor_id,POST_ID) 
+VALUES (9,1);
+INSERT INTO Applies (tutor_id,POST_ID) 
+VALUES (10,1);
+
+INSERT INTO Applies (tutor_id,POST_ID) 
+VALUES (11,2);
+INSERT INTO Applies (tutor_id,POST_ID) 
+VALUES (15,2);
+INSERT INTO Applies (tutor_id,POST_ID) 
+VALUES (16,2);
+INSERT INTO Applies (tutor_id,POST_ID) 
+VALUES (17,2);
+INSERT INTO Applies (tutor_id,POST_ID) 
+VALUES (18,2);
+
+INSERT INTO Applies (tutor_id,POST_ID) 
 VALUES (4,3);
 INSERT INTO Applies (tutor_id,POST_ID) 
 VALUES (4,5);
 INSERT INTO Applies (tutor_id,POST_ID) 
-VALUES (5,1);
-INSERT INTO Applies (tutor_id,POST_ID) 
-VALUES (5,2);
-INSERT INTO Applies (tutor_id,POST_ID) 
-VALUES (6,1);
-INSERT INTO Applies (tutor_id,POST_ID) 
 VALUES (6,4);
-INSERT INTO Applies (tutor_id,POST_ID) 
-VALUES (7,2);
-INSERT INTO Applies (tutor_id,POST_ID) 
-VALUES (7,1);
-INSERT INTO Applies (tutor_id,POST_ID) 
-VALUES (8,2);
+
+
+
 INSERT INTO Applies (tutor_id,POST_ID) 
 VALUES (8,3);
 INSERT INTO Applies (tutor_id,POST_ID) 
@@ -202,8 +252,7 @@ INSERT INTO Applies (tutor_id,POST_ID)
 VALUES (10,7);
 INSERT INTO Applies (tutor_id,POST_ID) 
 VALUES (11,1);
-INSERT INTO Applies (tutor_id,POST_ID) 
-VALUES (11,2);
+
 INSERT INTO Applies (tutor_id,POST_ID) 
 VALUES (15,3);
 INSERT INTO Applies (tutor_id,POST_ID) 
@@ -214,10 +263,8 @@ INSERT INTO Applies (tutor_id,POST_ID)
 VALUES (18,6);
 INSERT INTO Applies (tutor_id,POST_ID) 
 VALUES (19,7);
-INSERT INTO Applies (tutor_id,POST_ID) 
-VALUES (20,1);
-INSERT INTO Applies (tutor_id,POST_ID) 
-VALUES (21,2);
+
+
 INSERT INTO Applies (tutor_id,POST_ID) 
 VALUES (22,3);
 INSERT INTO Applies (tutor_id,POST_ID) 
@@ -230,25 +277,36 @@ INSERT INTO Applies (tutor_id,POST_ID)
 VALUES (26,7);
 
 ---- OFFER ----
+-- DELETE FROM Notifications;
+DELETE FROM Feedbacks;
+INSERT INTO Feedbacks(rating,review)
+VALUES (5,'Very good tutor');
+INSERT INTO Feedbacks(rating,review)
+VALUES (5,'Excellent teaching skill');
+INSERT INTO Feedbacks(rating,review)
+VALUES (3,'Average.');
+INSERT INTO Feedbacks(rating,review)
+VALUES (5,'Highly recommended.');
+
 DELETE FROM Offers;
-INSERT INTO Offers (student_id,tutor_id,tution_id,status,rating) 
-VALUES (1,4,8,'ACCEPTED',4);
-INSERT INTO Offers (student_id,tutor_id,tution_id,status) 
-VALUES (3,4,10,'PENDING');
-INSERT INTO Offers (student_id,tutor_id,tution_id,status,rating) 
-VALUES (1,5,9,'ACCEPTED',3);
-INSERT INTO Offers (student_id,tutor_id,tution_id,status) 
-VALUES (1,6,10,'PENDING');
-INSERT INTO Offers (student_id,tutor_id,tution_id,status,rating) 
-VALUES (2,4,11,'ACCEPTED',5);
+INSERT INTO Offers (student_id,tutor_id,tution_id,status,feedback_id) 
+VALUES (1,5,9,'ACCEPTED',1);
+INSERT INTO Offers (student_id,tutor_id,tution_id,status,feedback_id) 
+VALUES (1,6,10,'ACCEPTED',2);
+
+INSERT INTO Offers (student_id,tutor_id,tution_id,status,feedback_id) 
+VALUES (2,4,11,'ACCEPTED',3);
 INSERT INTO Offers (student_id,tutor_id,tution_id,status) 
 VALUES (2,5,12,'PENDING');
 INSERT INTO Offers (student_id,tutor_id,tution_id,status) 
 VALUES (2,6,13,'PENDING');
+
 INSERT INTO Offers (student_id,tutor_id,tution_id,status) 
-VALUES (12,4,14,'ACCEPTED');
+VALUES (3,4,10,'PENDING');
+INSERT INTO Offers (student_id,tutor_id,tution_id,status,feedback_id) 
+VALUES (12,4,14,'ACCEPTED',4);
 INSERT INTO Offers (student_id,tutor_id,tution_id,status) 
-VALUES (13,4,15,'PENDING');
+VALUES (13,5,15,'PENDING');
 INSERT INTO Offers (student_id,tutor_id,tution_id,status) 
 VALUES (14,4,16,'PENDING');
 
@@ -283,9 +341,16 @@ VALUES (1,1,'MEMBER');
 INSERT INTO MemberOf (user_id,coaching_id,type) 
 VALUES (1,2,'MEMBER');
 INSERT INTO MemberOf (user_id,coaching_id,type) 
-VALUES (1,3,'MEMBER');
+VALUES (1,3,'PENDING');
 INSERT INTO MemberOf (user_id,coaching_id,type) 
 VALUES (1,4,'MEMBER');
+INSERT INTO MemberOf (user_id,coaching_id,type) 
+VALUES (1,5,'MEMBER');
+INSERT INTO MemberOf (user_id,coaching_id,type) 
+VALUES (1,6,'MEMBER');
+INSERT INTO MemberOf (user_id,coaching_id,type) 
+VALUES (1,7,'MEMBER');
+
 INSERT INTO MemberOf (user_id,coaching_id,type) 
 VALUES (2,2,'MEMBER');
 INSERT INTO MemberOf (user_id,coaching_id,type) 
@@ -298,42 +363,48 @@ VALUES (4,1,'ADMIN');
 INSERT INTO MemberOf (user_id,coaching_id,type) 
 VALUES (5,2,'ADMIN');
 INSERT INTO MemberOf (user_id,coaching_id,type) 
-VALUES (6,3,'ADMIN');
+VALUES (4,3,'ADMIN');
 INSERT INTO MemberOf (user_id,coaching_id,type) 
-VALUES (7,4,'ADMIN');
+VALUES (4,4,'ADMIN');
 INSERT INTO MemberOf (user_id,coaching_id,type) 
-VALUES (8,5,'ADMIN');
+VALUES (4,5,'ADMIN');
 INSERT INTO MemberOf (user_id,coaching_id,type) 
-VALUES (9,6,'ADMIN');
-INSERT INTO MemberOf (user_id,coaching_id,type) 
-VALUES (10,8,'ADMIN');
+VALUES (4,6,'ADMIN');
 INSERT INTO MemberOf (user_id,coaching_id,type) 
 VALUES (4,7,'ADMIN');
--- INSERT INTO MemberOf (user_id,coaching_id,type) 
--- VALUES (5,9,'ADMIN');
+INSERT INTO MemberOf (user_id,coaching_id,type) 
+VALUES (4,8,'ADMIN');
+INSERT INTO MemberOf (user_id,coaching_id,type) 
+VALUES (4,9,'ADMIN');
+INSERT INTO MemberOf (user_id,coaching_id,type) 
+VALUES (4,10,'ADMIN');
 
 ---- COURSE ----
 DELETE FROM Courses;
 INSERT INTO Courses (coaching_id,class,subject)
-VALUES (1,'Class 10','Physics');
+VALUES (1,'Class 12','Math');
 INSERT INTO Courses (coaching_id,class,subject)
 VALUES (1,'Class 5','Bangla');
 INSERT INTO Courses (coaching_id,class,subject)
-VALUES (1,'Class 8','Math');
+VALUES (1,'Class 10','Math');
 INSERT INTO Courses (coaching_id,class,subject)
 VALUES (1,'Class 12','Physics');
 INSERT INTO Courses (coaching_id,class,subject)
-VALUES (2,'Class 10','Physics');
+VALUES (2,'Class 12','Biology');
 INSERT INTO Courses (coaching_id,class,subject)
-VALUES (2,'Class 5','Bangla');
+VALUES (3,'Class 12','Bangla');
 INSERT INTO Courses (coaching_id,class,subject)
-VALUES (2,'Class 12','Math');
+VALUES (4,'Class 12','Math');
 INSERT INTO Courses (coaching_id,class,subject)
-VALUES (3,'Class 5','English');
+VALUES (5,'Class 12','English');
 INSERT INTO Courses (coaching_id,class,subject)
-VALUES (3,'Class 4','Bangla');
+VALUES (6,'Class 12','ICT');
 INSERT INTO Courses (coaching_id,class,subject)
-VALUES (3,'Class 12','Chemistry');
+VALUES (1,'Class 12','Chemistry');
+INSERT INTO Courses (coaching_id,class,subject)
+VALUES (1,'Class 12','Biology');
+INSERT INTO Courses (coaching_id,class,subject)
+VALUES (1,'Class 12','Higher Math');
 
 ---- BATCH ----
 DELETE FROM Batches;
@@ -375,15 +446,25 @@ INSERT INTO Batches (course_id,start_date,seats,class_days,class_time)
 VALUES (9,to_date('25-AUG-19','DD-MON-RR'),30,'Sun, Tue, Thu','2:00PM-3:00PM');
 INSERT INTO Batches (course_id,start_date,seats,class_days,class_time)
 VALUES (10,to_date('25-AUG-19','DD-MON-RR'),30,'Sun, Tue, Thu','2:00PM-3:00PM');
+INSERT INTO Batches (course_id,start_date,seats,class_days,class_time)
+VALUES (11,to_date('25-AUG-19','DD-MON-RR'),30,'Sun, Tue, Thu','2:00PM-3:00PM');
+INSERT INTO Batches (course_id,start_date,seats,class_days,class_time)
+VALUES (12,to_date('25-AUG-19','DD-MON-RR'),30,'Sun, Tue, Thu','2:00PM-3:00PM');
 
 ----  ENROLLED_IN ----
 DELETE FROM EnrolledIn;
--- INSERT INTO EnrolledIn
--- VALUES(1,4,8);
 INSERT INTO EnrolledIn
-VALUES(1,7,13);
+VALUES(1,4,7,'APPROVED');
 INSERT INTO EnrolledIn
-VALUES(1,10,19);
+VALUES(1,5,9,'APPROVED');
+INSERT INTO EnrolledIn
+VALUES(1,6,11,'APPROVED');
+INSERT INTO EnrolledIn
+VALUES(1,7,13,'APPROVED');
+INSERT INTO EnrolledIn
+VALUES(1,8,15,'APPROVED');
+INSERT INTO EnrolledIn
+VALUES(1,9,17,'APPROVED');
 
 
 ---- EDUCATIONS ----
@@ -400,3 +481,37 @@ INSERT INTO Educations(tutor_id,institute,field_of_study,degree,passing_year)
 VALUES(5,'NDC','Science','HSC','2019');
 INSERT INTO Educations(tutor_id,institute,field_of_study,degree,passing_year)
 VALUES(5,'CZS','Science','SSC','2016');
+
+DELETE FROM Notices;
+INSERT INTO Notices(admin_id,coaching_id,class,subject,batch_id,text)
+VALUES(4,1,'Class 12','Physics',-1,'Due to unwanted circumstances todays classes wont be taken');
+INSERT INTO Notices(admin_id,coaching_id,class,subject,batch_id,text)
+VALUES(4,3,'Class 12','Bangla',-1,'Next weekly test willl be held on next monday at 9:00 AM');
+INSERT INTO Notices(admin_id,coaching_id,class,subject,batch_id,text)
+VALUES(4,1,'Class 12','Physics',-1,'Weekly exam result is published. Result has been messaged to you');
+INSERT INTO Notices(admin_id,coaching_id,class,subject,batch_id,text)
+VALUES(4,4,'Class 12','Math',-1,'Prize giving ceremony will be held on friday');
+
+DELETE FROM Classes;
+INSERT INTO Classes VALUES(1,'Class 1');
+INSERT INTO Classes VALUES(2,'Class 2');
+INSERT INTO Classes VALUES(3,'Class 3');	
+INSERT INTO Classes VALUES(4,'Class 4');
+INSERT INTO Classes VALUES(5,'Class 5');
+INSERT INTO Classes VALUES(6,'Class 6');
+INSERT INTO Classes VALUES(7,'Class 7');
+INSERT INTO Classes VALUES(8,'Class 8');
+INSERT INTO Classes VALUES(9,'Class 9');
+INSERT INTO Classes VALUES(10,'Class 10');
+INSERT INTO Classes VALUES(11,'Class 11');
+INSERT INTO Classes VALUES(12,'Class 12');
+INSERT INTO Classes VALUES(13,'SSC');
+INSERT INTO Classes VALUES(14,'HSC');
+INSERT INTO Classes VALUES(15,'A Level');
+INSERT INTO Classes VALUES(16,'O Level');
+INSERT INTO Classes VALUES(17,'Admission');
+
+DELETE FROM Mediums;
+INSERT INTO Mediums VALUES(1,'Bangla Medium');
+INSERT INTO Mediums VALUES(2,'English Medium');
+INSERT INTO Mediums VALUES(3,'English Version');	

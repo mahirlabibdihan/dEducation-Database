@@ -5,6 +5,9 @@
 -- 		DBMS_OUTPUT.PUT_LINE('No such table');
 -- END;
 -- /
+DROP TABLE Notices;
+-- DROP TABLE Tutor_Notices;
+-- DROP TABLE Coaching_Notices;
 DROP TABLE EDUCATIONS;
 -- DROP TABLE Rates;
 DROP TABLE EnrolledIn;
@@ -13,6 +16,7 @@ DROP TABLE Courses;
 DROP TABLE MemberOf;
 DROP TABLE Coachings;
 DROP TABLE Offers;
+DROP TABLE Feedbacks;
 DROP TABLE Applies;
 DROP TABLE Tution_Posts;
 DROP TABLE Tutions;
@@ -23,40 +27,22 @@ DROP TABLE Classes;
 DROP TABLE Mediums;
 
 CREATE TABLE Classes (
-	class_id		NUMBER PRIMARY KEY,
-	class 			VARCHAR2(100) NOT NULL
+	class_id			NUMBER PRIMARY KEY,
+	class 				VARCHAR2(100) NOT NULL
 );
-INSERT INTO Classes VALUES(1,'Class 1');
-INSERT INTO Classes VALUES(2,'Class 2');
-INSERT INTO Classes VALUES(3,'Class 3');	
-INSERT INTO Classes VALUES(4,'Class 4');
-INSERT INTO Classes VALUES(5,'Class 5');
-INSERT INTO Classes VALUES(6,'Class 6');
-INSERT INTO Classes VALUES(7,'Class 7');
-INSERT INTO Classes VALUES(8,'Class 8');
-INSERT INTO Classes VALUES(9,'Class 9');
-INSERT INTO Classes VALUES(10,'Class 10');
-INSERT INTO Classes VALUES(11,'Class 11');
-INSERT INTO Classes VALUES(12,'Class 12');
-INSERT INTO Classes VALUES(13,'SSC');
-INSERT INTO Classes VALUES(14,'HSC');
-INSERT INTO Classes VALUES(15,'A Level');
-INSERT INTO Classes VALUES(16,'O Level');
-INSERT INTO Classes VALUES(17,'Admission');
+
 
 CREATE TABLE Mediums (
-	medium_id		NUMBER PRIMARY KEY,
-	medium 			VARCHAR2(100) NOT NULL
+	medium_id			NUMBER PRIMARY KEY,
+	medium 				VARCHAR2(100) NOT NULL
 );
-INSERT INTO Mediums VALUES(1,'Bangla Medium');
-INSERT INTO Mediums VALUES(2,'English Medium');
-INSERT INTO Mediums VALUES(3,'English Version');	
+
 
 CREATE TABLE Users (
   user_id 			NUMBER Primary Key,
-  name 					VARCHAR2(100) NOT NULL,
+  name 					VARCHAR2(100)  NOT NULL,
   image 				VARCHAR2(1000) DEFAULT ON NULL 'sample.jpg',
-  email 				VARCHAR2(100) NOT NULL UNIQUE,
+  email 				VARCHAR2(100)  NOT NULL UNIQUE,
   pass 					VARCHAR2(1024) NOT NULL,
   role 					VARCHAR2(1024) NOT NULL,
   gender 				VARCHAR2(10),
@@ -88,8 +74,11 @@ CREATE TABLE Tutions (
 	tution_id 		NUMBER Primary Key,
 	subjects 			VARCHAR2(1024) NOT NULL,
 	salary 				NUMBER NOT NULL,
-	days_per_week NUMBER NOT NULL,
-	type 					VARCHAR2(100) NOT NULL
+	days_per_week NUMBER,
+	type 					VARCHAR2(100) NOT NULL,
+	class_days		VARCHAR2(100),	
+	class_time		VARCHAR2(100),
+	start_date		DATE
 );
 
 CREATE TABLE Tution_Posts (
@@ -109,6 +98,13 @@ CREATE TABLE Applies (
 						ON DELETE CASCADE
 );
 
+CREATE TABLE Feedbacks (
+	feedback_id 	NUMBER PRIMARY KEY,
+	rating 				NUMBER,
+	review				VARCHAR2(1024)
+);
+
+
 CREATE TABLE Offers (
 	student_id 	NUMBER 	REFERENCES Students(user_id) 
 							ON DELETE CASCADE,
@@ -117,8 +113,8 @@ CREATE TABLE Offers (
 	tution_id 	NUMBER 	REFERENCES Tutions(tution_id)
 							ON DELETE CASCADE,
 	status 			VARCHAR2(100) DEFAULT ON NULL 'PENDING',
-	rating 			NUMBER,
-	PRIMARY KEY(student_id,tutor_id)
+	feedback_id REFERENCES Feedbacks(feedback_id),
+	PRIMARY KEY(student_id,tutor_id,status)
 );
 
 CREATE TABLE Coachings(
@@ -129,12 +125,13 @@ CREATE TABLE Coachings(
 	phone_number 		VARCHAR2(15) NOT NULL
 );
 
+--- Member: PENDING is equavalent to JOIN REQUEST
 CREATE TABLE MemberOf(
 	user_id        	NUMBER  REFERENCES Users(user_id)
 									ON DELETE CASCADE,
 	coaching_id    	NUMBER  REFERENCES Coachings(coaching_id)
 									ON DELETE CASCADE,
-	type           	VARCHAR2(100),
+	type           	VARCHAR2(100) DEFAULT ON NULL 'PENDING',
 	PRIMARY KEY   	(user_id,coaching_id)
 );
 
@@ -165,6 +162,7 @@ CREATE TABLE  EnrolledIn(
 								ON DELETE CASCADE,
 	batch_id   	  NUMBER REFERENCES Batches(batch_id)
 								ON DELETE CASCADE,
+	status				VARCHAR2(100) DEFAULT ON NULL 'PENDING',
 	PRIMARY KEY (student_id,course_id)
 );
 
@@ -178,11 +176,42 @@ CREATE TABLE Educations (
 	passing_year		NUMBER
 );
 
--- CREATE TABLE Rates (
--- 	student_id 		NUMBER 	REFERENCES Students(user_id)
--- 								ON DELETE CASCADE,
--- 	tutor_id 		NUMBER 	REFERENCES Tutors(user_id)
--- 							ON DELETE CASCADE,
--- 	rating 			NUMBER NOT NULL,
--- 	PRIMARY KEY (student_id,tutor_id)
+DROP TABLE Notifications;
+CREATE TABLE Notifications (
+	notification_id NUMBER PRIMARY KEY,
+	type						VARCHAR2(100),
+	action					VARCHAR2(100),
+	user_id					NUMBER NOT NULL,
+	sender_id				NUMBER NOT NULL,
+	entity_id 			NUMBER NOT NULL,
+	image 					VARCHAR2(1000) NOT NULL,
+	text 						VARCHAR2(1024) NOT NULL,
+	url							VARCHAR2(100),
+	timestamp 			DATE DEFAULT SYSDATE,
+	seen						VARCHAR2(10) DEFAULT ON NULL 'NO'
+);
+
+-- CREATE TABLE Coaching_Notices (
+-- 	notice_id 			NUMBER PRIMARY KEY,
+-- 	coaching_id			NUMBER NOT NULL,
+-- 	text 						VARCHAR2(1024) NOT NULL,
+-- 	timestamp 			DATE DEFAULT SYSDATE
+-- );
+
+CREATE TABLE Notices (
+	notice_id 			NUMBER PRIMARY KEY,
+	admin_id				NUMBER NOT NULL,
+	coaching_id			NUMBER NOT NULL,
+	class        		VARCHAR2(100) NOT NULL,
+	subject					VARCHAR2(100) NOT NULL,
+	batch_id    		NUMBER NOT NULL,
+	text 						VARCHAR2(1024) NOT NULL,
+	timestamp 			DATE DEFAULT SYSDATE
+);
+
+-- CREATE TABLE Tutor_Notices (
+-- 	notice_id 			NUMBER PRIMARY KEY,
+-- 	tutor_id				NUMBER NOT NULL,
+-- 	text 						VARCHAR2(1024) NOT NULL,
+-- 	timestamp 			DATE DEFAULT SYSDATE
 -- );
