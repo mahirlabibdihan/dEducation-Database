@@ -25,8 +25,13 @@ CREATE OR REPLACE PROCEDURE CREATE_USER(
 )
 IS
 BEGIN
-	INSERT INTO Users (name,email,pass,role) 
-	VALUES (user_name,user_email,user_pass,user_type);
+	IF user_type = 'STUDENT' THEN
+		INSERT INTO Users (name,email,pass,role,image) 
+		VALUES (user_name,user_email,user_pass,user_type,'male_student.jpg');
+	ELSE 
+		INSERT INTO Users (name,email,pass,role,image) 
+		VALUES (user_name,user_email,user_pass,user_type,'male_tutor.jpg');
+	END IF;
 END;
 /
  
@@ -215,35 +220,36 @@ EXCEPTION
 END;
 /
 
-CREATE OR REPLACE PROCEDURE JOIN_REQUEST_NOTIFICATION(
-	c_coaching_id Coachings.coaching_id%TYPE,
-	s_student_id 	Students.user_id%TYPE
-)
-AS
-	c_name 	Coachings.name%TYPE;
-	s_name 	Users.name%TYPE;
-	s_image Users.image%TYPE;
-	t_id   	Tutors.user_id%TYPE;
-BEGIN
-	SELECT name INTO c_name
-	FROM Coachings WHERE coaching_id = c_coaching_id;
-	
-	SELECT name,image INTO s_name,s_image
-	FROM Users 
-	WHERE user_id = s_student_id;
-	
-	SELECT user_id INTO t_id
-	FROM MemberOf NATURAL JOIN Tutors
-	WHERE coaching_id = c_coaching_id;
-	
-	INSERT INTO Notifications(type,action,sender_id,entity_id,user_id,image,text,url)
-	VALUES('JOIN','REQUEST',s_student_id,c_coaching_id,t_id,s_image,s_name||' has requested to join '||c_name,'/pending_requests?type=Join+Request&coaching='||c_coaching_id||'&id=
-'||s_student_id);
-
-	DELETE FROM Notifications
-	WHERE type = 'JOIN' AND action = 'DECLINE' AND sender_id = c_coaching_id AND user_id = s_student_id;
-END;
-/
+-- DROP PROCEDURE JOIN_REQUEST_NOTIFICATION;
+-- CREATE OR REPLACE PROCEDURE JOIN_REQUEST_NOTIFICATION(
+-- 	c_coaching_id Coachings.coaching_id%TYPE,
+-- 	s_student_id 	Students.user_id%TYPE
+-- )
+-- AS
+-- 	c_name 	Coachings.name%TYPE;
+-- 	s_name 	Users.name%TYPE;
+-- 	s_image Users.image%TYPE;
+-- 	t_id   	Tutors.user_id%TYPE;
+-- BEGIN
+-- 	SELECT name INTO c_name
+-- 	FROM Coachings WHERE coaching_id = c_coaching_id;
+-- 	
+-- 	SELECT name,image INTO s_name,s_image
+-- 	FROM Users 
+-- 	WHERE user_id = s_student_id;
+-- 	
+-- 	SELECT user_id INTO t_id
+-- 	FROM MemberOf NATURAL JOIN Tutors
+-- 	WHERE coaching_id = c_coaching_id;
+-- 	
+-- 	INSERT INTO Notifications(type,action,sender_id,entity_id,user_id,image,text,url)
+-- 	VALUES('JOIN','REQUEST',s_student_id,c_coaching_id,t_id,s_image,s_name||' has requested to join '||c_name,'/pending_requests?type=Join+Request&coaching='||c_coaching_id||'&id=
+-- '||s_student_id);
+-- 
+-- 	DELETE FROM Notifications
+-- 	WHERE type = 'JOIN' AND action = 'DECLINE' AND sender_id = c_coaching_id AND user_id = s_student_id;
+-- END;
+-- /
 
 CREATE OR REPLACE PROCEDURE CANCEL_JOIN_NOTIFICATION(
 	c_coaching_id Coachings.coaching_id%TYPE,
@@ -431,6 +437,18 @@ BEGIN
 	return notification_list;
 END;
 /
+
+CREATE OR REPLACE PROCEDURE SEEN_NOTIFICATIONS(
+	u_user_id		Users.user_id%TYPE
+)
+AS
+BEGIN
+	UPDATE Notifications
+	SET seen = 'YES'
+	WHERE user_id = u_user_id;
+END;
+/
+
 
 CREATE OR REPLACE FUNCTION IS_OFFER_EXISTS(
 	t_tutor_id Tutors.user_id%TYPE,
@@ -1185,7 +1203,7 @@ AS
 BEGIN
 	INSERT INTO MemberOf
   VALUES(u_user_id,c_coaching_id,'PENDING');
-	JOIN_REQUEST_NOTIFICATION(c_coaching_id,u_user_id);
+-- 	JOIN_REQUEST_NOTIFICATION(c_coaching_id,u_user_id);
 END;
 /
 
