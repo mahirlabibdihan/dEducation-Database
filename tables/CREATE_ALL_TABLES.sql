@@ -5,11 +5,13 @@
 -- 		DBMS_OUTPUT.PUT_LINE('No such table');
 -- END;
 -- /
+-- DROP TABLE Notices;
 DROP TABLE Notices;
 -- DROP TABLE Tutor_Notices;
 -- DROP TABLE Coaching_Notices;
 DROP TABLE EDUCATIONS;
 -- DROP TABLE Rates;
+DROP TABLE Materials;
 DROP TABLE EnrolledIn;
 DROP TABLE Batches;
 DROP TABLE Courses;
@@ -77,7 +79,8 @@ CREATE TABLE Tutions (
 	days_per_week NUMBER,
 	type 					VARCHAR2(100) NOT NULL,
 	class_days		VARCHAR2(100),	
-	class_time		VARCHAR2(100),
+	start_time		TIMESTAMP(0),	
+	end_time			TIMESTAMP(0),	
 	start_date		DATE
 );
 
@@ -88,7 +91,10 @@ CREATE TABLE Tution_Posts (
 	tution_id 						NUMBER REFERENCES Tutions(tution_id)
 												ON DELETE CASCADE,
 	timestamp 						DATE DEFAULT sysdate NOT NULL,
-	desired_tutor_gender 	VARCHAR2(10) NOT NULL
+	desired_tutor_gender 	VARCHAR2(10) NOT NULL,
+	booking_status 				VARCHAR2(10),
+	selected_tutor 				NUMBER REFERENCES Tutors(user_id)
+												ON DELETE SET NULL
 );
 
 CREATE TABLE Applies (
@@ -111,7 +117,7 @@ CREATE TABLE Offers (
 	tutor_id 		NUMBER 	REFERENCES Tutors(user_id) 
 							ON DELETE CASCADE,
 	tution_id 	NUMBER 	REFERENCES Tutions(tution_id)
-							ON DELETE CASCADE,
+							ON DELETE SET NULL,
 	status 			VARCHAR2(100) DEFAULT ON NULL 'PENDING',
 	feedback_id REFERENCES Feedbacks(feedback_id),
 	PRIMARY KEY(student_id,tutor_id,status)
@@ -140,7 +146,8 @@ CREATE TABLE  Courses(
 	coaching_id  	NUMBER 	REFERENCES Coachings(coaching_id)
 								ON DELETE CASCADE,
 	class        	VARCHAR2(100) NOT NULL,
-	subject				VARCHAR2(100) NOT NULL
+	subject				VARCHAR2(100) NOT NULL,
+	UNIQUE (coaching_id,class,subject)
 );
 
 
@@ -152,7 +159,8 @@ CREATE TABLE  Batches(
 	seats					NUMBER NOT NULL,
 	students			NUMBER DEFAULT 0,
 	class_days		VARCHAR2(100) NOT NULL,	
-	class_time		VARCHAR2(100) NOT NULL
+	start_time		TIMESTAMP(0),
+	end_time 			TIMESTAMP(0)
 );
 
 CREATE TABLE  EnrolledIn(
@@ -191,13 +199,6 @@ CREATE TABLE Notifications (
 	seen						VARCHAR2(10) DEFAULT ON NULL 'NO'
 );
 
--- CREATE TABLE Coaching_Notices (
--- 	notice_id 			NUMBER PRIMARY KEY,
--- 	coaching_id			NUMBER NOT NULL,
--- 	text 						VARCHAR2(1024) NOT NULL,
--- 	timestamp 			DATE DEFAULT SYSDATE
--- );
-
 CREATE TABLE Notices (
 	notice_id 			NUMBER PRIMARY KEY,
 	admin_id				NUMBER NOT NULL,
@@ -208,6 +209,25 @@ CREATE TABLE Notices (
 	text 						VARCHAR2(1024) NOT NULL,
 	timestamp 			DATE DEFAULT SYSDATE
 );
+
+CREATE TABLE Materials (
+	material_id 		NUMBER PRIMARY KEY,
+	material_type 	VARCHAR2(100),
+	description			VARCHAR2(1024),
+	link        		VARCHAR2(100) NOT NULL,
+	tutor_id				NUMBER REFERENCES Tutors(user_id)
+									ON DELETE CASCADE,
+	timestamp 			DATE DEFAULT SYSDATE
+);
+
+-- CREATE TABLE Coaching_Notices (
+-- 	notice_id 			NUMBER PRIMARY KEY,
+-- 	coaching_id			NUMBER NOT NULL,
+-- 	text 						VARCHAR2(1024) NOT NULL,
+-- 	timestamp 			DATE DEFAULT SYSDATE
+-- );
+
+
 
 -- CREATE TABLE Tutor_Notices (
 -- 	notice_id 			NUMBER PRIMARY KEY,

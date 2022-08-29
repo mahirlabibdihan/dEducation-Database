@@ -101,6 +101,20 @@ BEGIN
 END;
 /
 
+CREATE OR REPLACE TRIGGER GENERATE_MATERIAL_ID
+	BEFORE INSERT
+	ON Materials
+	FOR EACH ROW
+BEGIN
+	SELECT COUNT(material_id)+1 INTO :NEW.material_id
+	FROM Materials; 
+	IF :NEW.material_id > 1 THEN
+		SELECT MAX(material_id)+1 INTO :NEW.material_id
+		FROM Materials; 
+	END IF;
+END;
+/
+
 CREATE OR REPLACE TRIGGER GENERATE_BATCH_ID
 	BEFORE INSERT
 	ON Batches
@@ -257,11 +271,19 @@ WHEN (NEW.status = 'REJECTED')
 DECLARE
 	t_name 	Users.name%TYPE;
 	t_image Users.image%TYPE;
+	reason 	Feedbacks.review%TYPE;
 BEGIN
+	SELECT review INTO reason
+	FROM Feedbacks WHERE feedback_id = :NEW.feedback_id; 
+	
 	SELECT name,image INTO t_name,t_image
 	FROM Users WHERE user_id = :NEW.tutor_id;
+	
+	DELETE FROM Notifications
+	WHERE type = 'TUTION' AND action = 'OFFER' AND sender_id = :NEW.student_id AND user_id = :NEW.tutor_id;
+	
 	INSERT INTO Notifications(type,action,sender_id,entity_id,user_id,image,text,url)
-	VALUES('TUTION','REJECT',:NEW.tutor_id,:NEW.tution_id,:NEW.student_id,t_image,t_name||' has rejected your offer','/home/tutors?id='||:NEW.tutor_id);
+	VALUES('TUTION','REJECT',:NEW.tutor_id,:NEW.tution_id,:NEW.student_id,t_image,t_name||' has rejected your offer. Reason: "'||reason||'"','/home/tutors?id='||:NEW.tutor_id);
 END;
 /
 
@@ -275,7 +297,6 @@ DECLARE
 	student_row STUDENT;
 BEGIN
 	student_row := GET_STUDENT_DETAILS(:NEW.student_id);
-	
 	DELETE FROM Notifications
 	WHERE type = 'TUTION' AND action = 'REJECT' AND sender_id = :NEW.tutor_id AND user_id = :NEW.student_id;
 	
@@ -396,6 +417,16 @@ BEGIN
 END;
 /
 
+-- CREATE OR REPLACE TRIGGER DELETE_OFFER_TRIGGER
+-- 	AFTER DELETE
+-- 	ON Offers
+-- 	FOR EACH ROW
+-- BEGIN
+-- 	DELETE FROM Tutions 
+-- 	WHERE tution_id = :OLD.tution_id;
+-- END;
+-- /
+
 
 CREATE OR REPLACE TRIGGER APPROVE_ENROLL_NOTIFICATION
 	AFTER UPDATE
@@ -487,6 +518,16 @@ EXCEPTION
 END;
 /
 
+CREATE OR REPLACE TRIGGER TUTION_POST_OFFER_TRIGGER
+	BEFORE UPDATE
+	OF booking_status
+	ON Tution_Posts
+	FOR EACH ROW
+WHEN (OLD.booking_status IS NOT NULL AND NEW.booking_status = 'PENDING')
+BEGIN
+	RAISE_APPLICATION_ERROR(-20999, 'Can`t offer more than one tutor for the same tution');
+END;
+/
 
 CREATE OR REPLACE TRIGGER CHECK_BATCH_LIMIT
 	BEFORE INSERT
@@ -520,31 +561,36 @@ END;
 
 SELECT * FROM user_errors WHERE type='TRIGGER';
 -- DROP TRIGGER JOIN_REQUEST_NOTIFICATION;
--- CREATE OR REPLACE TRIGGER JOIN_REQUEST_NOTIFICATION
--- 	AFTER INSERT
--- 	ON MemberOf
--- 	FOR EACH ROW
--- WHEN (NEW.type = 'PENDING')
--- DECLARE
--- 	c_name 	Coachings.name%TYPE;
--- 	s_name 	Users.name%TYPE;
--- 	s_image Users.image%TYPE;
--- 	t_id   	Tutors.user_id%TYPE;
--- BEGIN
--- 	SELECT name INTO c_name
--- 	FROM Coachings WHERE coaching_id = :NEW.coaching_id;
--- 	
--- 	SELECT name,image INTO s_name,s_image
--- 	FROM Users 
--- 	WHERE user_id = :NEW.user_id;
--- 	
--- 	SELECT user_id INTO t_id
--- 	FROM MemberOf NATURAL JOIN Tutors
--- 	WHERE coaching_id = :NEW.coaching_id;
--- 	
--- 	INSERT INTO Notifications(user_id,image,text,url)
--- 	VALUES(t_id,s_image,s_name||' has requested to join '||c_name,'/pending_requests');
--- END;
+CREATE OR REPLACE TRIGGER JOIN_REQUEST_NOTIFICATION
+	BEFORE INSERT
+	ON MemberOf
+	FOR EACH ROW
+WHEN (NEW.type = 'PENDING')
+DECLARE
+	c_name 	Coachings.name%TYPE;
+	s_name 	Users.name%TYPE;
+	s_image Users.image%TYPE;
+	t_id   	Tutors.user_id%TYPE;
+BEGIN
+	DBMS_OUTPUT.PUT_LINE(:NEW.user_id||' '||:NEW.coaching_id);
+	SELECT name INTO c_name
+	FROM Coachings WHERE coaching_id = :NEW.coaching_id;
+	
+	SELECT name,image INTO s_name,s_image
+	FROM Users 
+	WHERE user_id = :NEW.user_id;
+	
+	SELECT user_id INTO t_id
+	FROM MemberOf NATURAL JOIN Tutors
+	WHERE coaching_id = :NEW.coaching_id;
+	
+	INSERT INTO Notifications(type,action,sender_id,entity_id,user_id,image,text,url)
+	VALUES('JOIN','REQUEST',:NEW.user_id,:NEW.coaching_id,t_id,s_image,s_name||' has requested to join '||c_name,'/pending_requests?type=Join+Request&coaching='||:NEW.coaching_id||'&id=
+'||:NEW.user_id);
+	
+	DELETE FROM Notifications
+	WHERE type = 'JOIN' AND action = 'DECLINE' AND sender_id = :NEW.coaching_id AND user_id = :NEW.user_id;
+END;
 /
 
 -- DROP TRIGGER REJECT_OFFER_NOTIFICATION;

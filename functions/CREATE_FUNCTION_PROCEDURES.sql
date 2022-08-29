@@ -106,15 +106,16 @@ CREATE OR REPLACE FUNCTION CREATE_TUTION(
 	t_days_per_week Tutions.days_per_week%TYPE,
 	t_start_date		VARCHAR2,
 	t_class_days 		Tutions.class_days%TYPE,
-	t_class_time 		Tutions.class_time%TYPE,
+	t_start_time 		VARCHAR2,
+	t_end_time 			VARCHAR2,
 	t_type					Tutions.type%TYPE
 )
 return Tutions.tution_id%TYPE
 AS 
 t_id 	Tutions.tution_id%TYPE;
 BEGIN
-	INSERT INTO Tutions (subjects,salary,days_per_week,start_date,class_days,class_time,type)
-	VALUES(t_subjects,t_salary,t_days_per_week,TO_DATE(t_start_date,'MM/DD/YYYY'),t_class_days,t_class_time,t_type)
+	INSERT INTO Tutions (subjects,salary,days_per_week,start_date,class_days,start_time,end_time,type)
+	VALUES(t_subjects,t_salary,t_days_per_week,TO_DATE(t_start_date,'MM/DD/YYYY'),t_class_days,TO_DATE(t_start_time,'HH24:MI:SS'),TO_DATE(t_end_time,'HH24:MI:SS'),t_type)
 	RETURNING tution_id 
 	INTO t_id;
 	return t_id;
@@ -132,7 +133,7 @@ CREATE OR REPLACE PROCEDURE POST_TUTION(
 AS
 BEGIN
 	INSERT INTO Tution_Posts (student_id,tution_id,desired_tutor_gender)
-	VALUES(tp_student_id,CREATE_TUTION(t_subjects,t_salary,t_days_per_week,NULL,NULL,NULL,t_type),tp_desired_tutor_gender);
+	VALUES(tp_student_id,CREATE_TUTION(t_subjects,t_salary,t_days_per_week,NULL,NULL,NULL,NULL,t_type),tp_desired_tutor_gender);
 END;
 /
 
@@ -162,7 +163,9 @@ BEGIN
 				r.days_per_week,
 				r.type,
 				r.timestamp,
-				0);
+				0,
+				r.booking_status,
+				r.selected_tutor);
 	END LOOP;
 	SELECT COUNT(*) INTO tution_post_row.applicant_count
 	FROM Applies
@@ -354,6 +357,32 @@ BEGIN
 	return notice_row;
 END;
 /
+
+-- CREATE OR REPLACE FUNCTION GET_SCHEDULE_DETAILS(
+-- 	
+-- )
+-- return NOTICE
+-- AS 
+-- 	notice_row NOTICE := SCHEDULE(NULL,NULL,NULL,NULL);
+-- BEGIN
+-- 	FOR r IN (
+-- 		SELECT * 	 	
+-- 		FROM Notices NATURAL JOIN Coachings
+-- 		WHERE notice_id = n_notice_id
+-- 	)LOOP
+-- 		notice_row := NOTICE(
+-- 				r.name,
+-- 				r.image,
+-- 				r.class,
+-- 				r.subject,
+-- 				r.text,
+-- 				r.timestamp
+-- 		);
+-- 	END LOOP;
+-- 	return notice_row;
+-- END;
+-- /
+-- 
 CREATE OR REPLACE FUNCTION GET_MEMBER_NOTICES(
 	s_student_id	Students.user_id%TYPE
 )
@@ -372,6 +401,115 @@ BEGIN
 	END IF;
 	END LOOP;
 	return notice_list;
+END;
+/
+
+CREATE OR REPLACE FUNCTION GET_STUDENT_SCHEDULE(
+	s_student_id	Students.user_id%TYPE
+)
+return SCHEDULE_ARRAY
+AS
+schedule_list SCHEDULE_ARRAY := SCHEDULE_ARRAY();
+BEGIN
+	FOR r IN (
+		SELECT start_date, class_days, start_time, end_time, name, image, subjects
+		FROM Offers NATURAL JOIN Tutions 
+		JOIN Users ON tutor_id = user_id
+		WHERE student_id = s_student_id
+		AND status = 'ACCEPTED'
+		UNION
+		SELECT start_date, class_days, start_time, end_time, name, image, subject AS subjects
+		FROM EnrolledIn 
+		NATURAL JOIN Coachings
+		NATURAL JOIN Courses
+		NATURAL JOIN Batches 
+		WHERE student_id = s_student_id
+		AND status = 'APPROVED'
+		ORDER BY start_time ASC
+	)LOOP
+	schedule_list.EXTEND;
+	schedule_list(schedule_list.LAST) := SCHEDULE(r.start_date,r.class_days,r.start_time,r.end_time,r.name,r.image,r.subjects);
+	END LOOP;
+	return schedule_list;
+END;
+/
+
+CREATE OR REPLACE FUNCTION GET_STUDENT_ALL_SCHEDULE(
+	s_student_id	Students.user_id%TYPE
+)
+return SCHEDULE_ARRAY
+AS
+schedule_list SCHEDULE_ARRAY := SCHEDULE_ARRAY();
+BEGIN
+	FOR r IN (
+		SELECT *
+		FROM Offers NATURAL JOIN Tutions 
+		JOIN Users ON tutor_id = user_id
+		WHERE student_id = s_student_id
+		AND (status <> 'CANCELLED' AND status <> 'REJECTED')
+		ORDER BY start_time ASC
+	)LOOP
+	schedule_list.EXTEND;
+	schedule_list(schedule_list.LAST) := SCHEDULE(r.start_date,r.class_days,r.start_time,r.end_time,r.name,r.image,r.subjects);
+	END LOOP;
+	
+	FOR r IN (
+		SELECT *
+		FROM EnrolledIn 
+		NATURAL JOIN Coachings
+		NATURAL JOIN Courses
+		NATURAL JOIN Batches 
+		WHERE student_id = s_student_id
+		ORDER BY start_time ASC
+	)LOOP
+	schedule_list.EXTEND;
+	schedule_list(schedule_list.LAST) := SCHEDULE(r.start_date,r.class_days,r.start_time,r.end_time,r.name,r.image,r.subject);
+	END LOOP;
+	return schedule_list;
+END;
+/
+
+CREATE OR REPLACE FUNCTION GET_TUTOR_SCHEDULE(
+	t_tutor_id	Tutors.user_id%TYPE
+)
+return SCHEDULE_ARRAY
+AS
+schedule_list SCHEDULE_ARRAY := SCHEDULE_ARRAY();
+BEGIN
+	FOR r IN (
+		SELECT *
+		FROM Offers NATURAL JOIN Tutions 
+		JOIN Users ON student_id = user_id
+		WHERE tutor_id = t_tutor_id
+		AND status = 'ACCEPTED'
+		ORDER BY start_time ASC
+	)LOOP
+	schedule_list.EXTEND;
+	schedule_list(schedule_list.LAST) := SCHEDULE(r.start_date,r.class_days,r.start_time,r.end_time,r.name,r.image,r.subjects);
+	END LOOP;
+	return schedule_list;
+END;
+/
+
+CREATE OR REPLACE FUNCTION GET_TUTOR_ALL_SCHEDULE(
+	t_tutor_id	Tutors.user_id%TYPE
+)
+return SCHEDULE_ARRAY
+AS
+schedule_list SCHEDULE_ARRAY := SCHEDULE_ARRAY();
+BEGIN
+	FOR r IN (
+		SELECT *
+		FROM Offers NATURAL JOIN Tutions 
+		JOIN Users ON student_id = user_id
+		WHERE tutor_id = t_tutor_id
+		AND status = 'ACCEPTED'
+		ORDER BY start_time ASC
+	)LOOP
+	schedule_list.EXTEND;
+	schedule_list(schedule_list.LAST) := SCHEDULE(r.start_date,r.class_days,r.start_time,r.end_time,r.name,r.image,r.subjects);
+	END LOOP;
+	return schedule_list;
 END;
 /
 
@@ -478,6 +616,7 @@ BEGIN
 	FOR r IN (
 		SELECT *
 		FROM Tution_Posts
+		WHERE booking_status IS NULL OR booking_status = 'PENDING'
 		ORDER BY post_id DESC
 	)LOOP
 		IF IS_OFFER_EXISTS(t_tutor_id,r.student_id) = 'NO' THEN
@@ -515,6 +654,7 @@ BEGIN
 		AND (s_version = 'Any' OR version = s_version)
 		AND (t_type = 'Any' OR type = t_type)
 		AND (s_class = 'Any' OR class = s_class)
+		AND (booking_status IS NULL OR booking_status = 'PENDING')
 		ORDER BY post_id DESC
 	)LOOP
 	IF IS_OFFER_EXISTS(t_tutor_id,r.student_id) = 'NO' THEN
@@ -555,6 +695,7 @@ BEGIN
 	AND (s_version = 'Any' OR version = s_version)
 	AND (t_type = 'Any' OR type = t_type)
 	AND (s_class = 'Any' OR class = s_class)
+	AND (booking_status IS NULL OR booking_status = 'PENDING')
 	ORDER BY T.post_id DESC
 	)LOOP
 	IF IS_OFFER_EXISTS(t_tutor_id,r.student_id) = 'NO' THEN
@@ -582,6 +723,7 @@ BEGIN
 	FROM Tution_Posts T
 	LEFT OUTER JOIN Applies A
 	ON A.post_id = T.post_id AND tutor_id = t_tutor_id
+	WHERE (booking_status IS NULL OR booking_status = 'PENDING')
 	ORDER BY T.post_id DESC
 	)LOOP
 	IF IS_OFFER_EXISTS(t_tutor_id,r.student_id) = 'NO' THEN
@@ -1250,7 +1392,7 @@ CREATE OR REPLACE FUNCTION GET_ACCEPTED_TUTION_DETAILS(
 )
 return TUTION
 AS
-tution_row TUTION := TUTION(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+tution_row TUTION := TUTION(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 BEGIN
 	FOR r IN (
 		SELECT *
@@ -1260,7 +1402,7 @@ BEGIN
 		AND student_id = s_student_id
 	)LOOP
 		IF r.status = 'ACCEPTED' THEN
-			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,r.class_time,r.review,r.start_date);
+			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,r.start_time,r.end_time,r.review,r.start_date);
 		END IF;
 	END LOOP;
 	return tution_row;
@@ -1273,7 +1415,7 @@ CREATE OR REPLACE FUNCTION GET_TUTION_DETAILS(
 )
 return TUTION
 AS
-tution_row TUTION := TUTION(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+tution_row TUTION := TUTION(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 BEGIN
 	FOR r IN (
 		SELECT *
@@ -1283,9 +1425,9 @@ BEGIN
 		AND student_id = s_student_id
 	)LOOP
 		IF r.status = 'UPDATE' THEN
-			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,r.class_time,r.review,r.start_date);
+			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,r.start_time,r.end_time,r.review,r.start_date);
 		ELSIF tution_row.status IS NULL THEN
-			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,r.class_time,r.review,r.start_date);
+			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,r.start_time,r.end_time,r.review,r.start_date);
 		END IF;
 	END LOOP;
 	return tution_row;
@@ -1376,14 +1518,14 @@ CREATE OR REPLACE FUNCTION GET_TUTION_DETAILS_FROM_POST(
 )
 return TUTION
 AS
-tution_row TUTION := TUTION(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+tution_row TUTION := TUTION(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 BEGIN
 	FOR r IN (
 		SELECT *
 		FROM Tution_Posts NATURAL JOIN Tutions
 		WHERE post_id = tp_post_id
 	)LOOP
-		tution_row := TUTION(NULL, r.subjects, r.salary, r.days_per_week, r.type,NULL,NULL,NULL,NULL,NULL);
+		tution_row := TUTION(NULL, r.subjects, r.salary, r.days_per_week, r.type,NULL,NULL,NULL,NULL,NULL,NULL);
 	END LOOP;
 	return tution_row;
 END;
@@ -1543,12 +1685,13 @@ CREATE OR REPLACE PROCEDURE CREATE_BATCH(
 	b_start_date	VARCHAR2,
 	b_seats				Batches.seats%TYPE,
 	b_class_days	Batches.class_days%TYPE,
-	b_class_time	Batches.class_time%TYPE
+	b_start_time	VARCHAR2,
+	b_end_time		VARCHAR2
 )
 AS
 BEGIN
-	INSERT INTO Batches (course_id,start_date,seats,class_days,class_time)
-	VALUES(c_course_id,TO_DATE(b_start_date,'MM/DD/YYYY'),b_seats,b_class_days,b_class_time);
+	INSERT INTO Batches (course_id,start_date,seats,class_days,start_time,end_time)
+	VALUES(c_course_id,TO_DATE(b_start_date,'MM/DD/YYYY'),b_seats,b_class_days,TO_DATE(b_start_time,'HH24:MI:SS'),TO_DATE(b_end_time,'HH24:MI:SS'));
 END;
 /
 
@@ -1617,7 +1760,7 @@ CREATE OR REPLACE FUNCTION  GET_BATCH_DETAILS(
 )
 return BATCH
 AS 
-	batch_row BATCH := BATCH(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+	batch_row BATCH := BATCH(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 BEGIN
 	FOR r IN (
 		SELECT * 	 	
@@ -1630,7 +1773,8 @@ BEGIN
 				r.seats,
 				r.students,
 				r.class_days,
-				r.class_time,
+				r.start_time,
+				r.end_time,
 				0,
 				NULL
 		);
@@ -1646,10 +1790,10 @@ CREATE OR REPLACE FUNCTION  GET_COURSE_DETAILS(
 )
 return COURSE
 AS 
-	course_row COURSE := COURSE(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+	course_row COURSE := COURSE(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 BEGIN
 	FOR r IN (
-		SELECT C.course_id,name,class,subject,start_date,seats,students,class_days,class_time
+		SELECT C.course_id,name,class,subject,start_date,seats,students,class_days,start_time,end_time
 		FROM Courses C NATURAL JOIN Coachings
 		LEFT OUTER JOIN Batches B
 		ON B.course_id = C.course_id
@@ -1665,9 +1809,11 @@ BEGIN
 				r.seats,
 				r.students,
 				r.class_days,
-				r.class_time,
+				r.start_time,
+				r.end_time,
 				0,
-				0
+				0,
+				NULL
 		);
 		course_row.batch_count := GET_BATCH_COUNT(c_course_id);
 		course_row.student_count := GET_COURSE_STUDENT_COUNT(c_course_id);
@@ -1703,7 +1849,7 @@ CREATE OR REPLACE FUNCTION GET_ALREADY_SELECTED_BATCH(
 )
 return BATCH
 AS
-batch_row BATCH := BATCH(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+batch_row BATCH := BATCH(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 BEGIN
 	FOR r IN(
 		SELECT batch_id,status
@@ -1906,26 +2052,47 @@ CREATE OR REPLACE PROCEDURE MAKE_OFFER(
 	t_salary 				Tutions.salary%TYPE,
 	t_start_date 		VARCHAR2,
 	t_class_days 		Tutions.class_days%TYPE,
-	t_class_time		Tutions.class_time%TYPE,
+	t_start_time		VARCHAR2,
+	t_end_time			VARCHAR2,
 	t_type					Tutions.type%TYPE
 )
 AS
 BEGIN
 		IF IS_TUTION_ACCEPTED(s_student_id,t_tutor_id) = 'YES' THEN
 			INSERT INTO Offers (student_id, tutor_id, tution_id, status)
-			VALUES(s_student_id,t_tutor_id,CREATE_TUTION(t_subjects,t_salary,NULL,t_start_date,t_class_days,t_class_time,t_type),'UPDATE');
+			VALUES(s_student_id,t_tutor_id,CREATE_TUTION(t_subjects,t_salary,NULL,t_start_date,t_class_days,t_start_time,t_end_time,t_type),'UPDATE');
 		ELSIF IS_TUTION_REJECTED(s_student_id,t_tutor_id) = 'YES' OR IS_TUTION_CANCELLED(s_student_id,t_tutor_id) = 'YES' THEN
 			UPDATE Offers
 			SET status = 'PENDING',
-			tution_id = CREATE_TUTION(t_subjects,t_salary,NULL,t_start_date,t_class_days,t_class_time,t_type)
+			tution_id = CREATE_TUTION(t_subjects,t_salary,NULL,t_start_date,t_class_days,t_start_time,t_end_time,t_type)
 			WHERE student_id = s_student_id AND tutor_id = t_tutor_id;
 		ELSE 
 			INSERT INTO Offers (student_id, tutor_id, tution_id, status)
-			VALUES(s_student_id,t_tutor_id,CREATE_TUTION(t_subjects,t_salary,NULL,t_start_date,t_class_days,t_class_time,t_type),'PENDING');
+			VALUES(s_student_id,t_tutor_id,CREATE_TUTION(t_subjects,t_salary,NULL,t_start_date,t_class_days,t_start_time,t_end_time,t_type),'PENDING');
 	 END IF;
 END;
 /
 
+CREATE OR REPLACE PROCEDURE MAKE_OFFER_FOR_POST(
+	p_post_id 			Tution_Posts.post_id%TYPE,
+	s_student_id		Students.user_id%TYPE,
+	t_tutor_id 			Tutors.user_id%TYPE,
+	t_subjects 			Tutions.subjects%TYPE,
+	t_salary 				Tutions.salary%TYPE,
+	t_start_date 		VARCHAR2,
+	t_class_days 		Tutions.class_days%TYPE,
+	t_start_time		VARCHAR2,
+	t_end_time			VARCHAR2,
+	t_type					Tutions.type%TYPE
+)
+AS
+BEGIN
+	UPDATE Tution_Posts SET booking_status = 'PENDING', selected_tutor = t_tutor_id
+	WHERE post_id = p_post_id;
+	
+	MAKE_OFFER(s_student_id,t_tutor_id,t_subjects,t_salary,t_start_date,t_class_days,t_start_time,t_end_time,t_type);
+END;
+/
 
 CREATE OR REPLACE FUNCTION IS_VALID_TOKEN(
 	u_id			Users.user_id%TYPE, 
@@ -1976,6 +2143,9 @@ CREATE OR REPLACE PROCEDURE ACCEPT_OFFER(
 AS
 new_tution_id Tutions.tution_id%TYPE;
 BEGIN
+	UPDATE Tution_Posts SET booking_status = 'BOOKED'
+	WHERE student_id = s_student_id AND booking_status = 'PENDING' AND selected_tutor = t_tutor_id;
+		
 	IF IS_TUTION_ACCEPTED(s_student_id,t_tutor_id) = 'YES' THEN
 		--- Replace old tution id with new one.
 		SELECT tution_id INTO new_tution_id
@@ -1991,14 +2161,12 @@ BEGIN
 	ELSE 
 		--- Update offer status
 		UPDATE Offers
-		SET status = 'ACCEPTED'
+		SET status = 'ACCEPTED', feedback_id = NULL
 		WHERE tutor_id = t_tutor_id AND student_id = s_student_id AND status = 'PENDING';
 	END IF;
 	
 END;
 /
-
-
 
 CREATE OR REPLACE PROCEDURE APPROVE_JOIN_REQUEST(
 	c_coaching_id 		Coachings.coaching_id%TYPE,
@@ -2011,6 +2179,101 @@ BEGIN
 	WHERE coaching_id = c_coaching_id AND user_id = s_student_id;
 	
 	APPROVE_JOIN_NOTIFICATION(c_coaching_id,s_student_id);
+END;
+/
+
+-- CREATE OR REPLACE PROCEDURE UPLOAD_CONTENT_COACHING(
+-- 	c_coaching_id 		Coachings.coaching_id%TYPE,
+-- 	title 						Materials.title%TYPE,
+-- 	subject						Materials.subject%TYPE,
+-- 	link 							Materials.link%TYPE
+-- )
+-- AS
+-- coaching_row COACHING;
+-- BEGIN
+-- 	UPDATE MemberOf
+-- 	SET type = 'MEMBER'
+-- 	WHERE coaching_id = c_coaching_id AND user_id = s_student_id;
+-- 	APPROVE_JOIN_NOTIFICATION(c_coaching_id,s_student_id);
+-- END;
+-- /
+
+CREATE OR REPLACE PROCEDURE UPLOAD_MATERIAL(
+	t_tutor_id 					NUMBER,
+	m_material_type			Materials.material_type%TYPE,
+	m_description 			Materials.description%TYPE,
+	m_link 							Materials.link%TYPE
+)
+AS
+tutor_row TUTOR;
+BEGIN
+	tutor_row := GET_TUTOR_DETAILS(t_tutor_id);
+	INSERT INTO MATERIALS(material_type,description,link,tutor_id) 
+	VALUES(m_material_type,m_description,m_link,t_tutor_id);
+END;
+/
+
+CREATE OR REPLACE FUNCTION GET_MATERIAL_DETAILS(
+	m_material_id Materials.material_id%TYPE
+)
+return MATERIAL
+AS 
+	material_row MATERIAL := MATERIAL(NULL,NULL,NULL,NULL,NULL,NULL);
+BEGIN
+	FOR r IN (
+		SELECT * 	 	
+		FROM Materials JOIN Users
+		ON tutor_id = user_id
+		WHERE material_id = m_material_id
+	)LOOP
+		material_row := MATERIAL(
+				r.material_type,
+				r.description,
+				r.link,
+				r.name,
+				r.image,
+				r.timestamp
+		);
+	END LOOP;
+	return material_row;
+END;
+/
+
+CREATE OR REPLACE FUNCTION GET_ALL_MATERIALS
+	return MATERIAL_ARRAY
+AS
+material_list MATERIAL_ARRAY := MATERIAL_ARRAY();
+BEGIN
+	FOR r IN (
+		SELECT *
+		FROM Materials
+		ORDER BY material_id DESC
+	)LOOP
+	material_list.EXTEND;
+	material_list(material_list.LAST) := GET_MATERIAL_DETAILS(r.material_id);
+	END LOOP;
+	return material_list;
+END;
+/
+
+
+CREATE OR REPLACE FUNCTION GET_TUTOR_MATERIALS(
+	t_tutor_id 		Tutors.user_id%TYPE
+)
+return MATERIAL_ARRAY
+AS
+material_list MATERIAL_ARRAY := MATERIAL_ARRAY();
+BEGIN
+	FOR r IN (
+		SELECT *
+		FROM Materials
+		WHERE tutor_id = t_tutor_id
+		ORDER BY material_id	 DESC
+	)LOOP
+	material_list.EXTEND;
+	material_list(material_list.LAST) := GET_MATERIAL_DETAILS(r.material_id);
+	END LOOP;
+	return material_list;
 END;
 /
 
@@ -2044,12 +2307,13 @@ CREATE OR REPLACE PROCEDURE CANCEL_OFFER(
 )
 AS
 BEGIN
+	UPDATE Tution_Posts SET booking_status = NULL, selected_tutor = NULL
+	WHERE student_id = s_student_id AND booking_status = 'PENDING' AND selected_tutor = t_tutor_id;
 	IF IS_TUTION_ACCEPTED(s_student_id,t_tutor_id) = 'YES' THEN
 		DELETE FROM Offers
 		WHERE tutor_id = t_tutor_id AND student_id = s_student_id
 		AND status = 'UPDATE';
-	ELSE 
-		DBMS_OUTPUT.PUT_LINE('Fired');
+	ELSE 	 
 		UPDATE Offers
 		SET status = 'CANCELLED'
 		WHERE tutor_id = t_tutor_id AND student_id = s_student_id 
@@ -2060,17 +2324,26 @@ END;
 
 CREATE OR REPLACE PROCEDURE REJECT_OFFER(
 	t_tutor_id 		Tutors.user_id%TYPE,
-	s_student_id 	Students.user_id%TYPE
+	s_student_id 	Students.user_id%TYPE,
+	reason 				Feedbacks.review%TYPE
 )
 AS
+f_id Feedbacks.feedback_id%TYPE;
 BEGIN
+	UPDATE Tution_Posts SET booking_status = NULL, selected_tutor = NULL
+	WHERE student_id = s_student_id AND booking_status = 'PENDING' AND selected_tutor = t_tutor_id;
+	
 	IF IS_TUTION_ACCEPTED(s_student_id,t_tutor_id) = 'YES' THEN
 		DELETE FROM Offers
 		WHERE tutor_id = t_tutor_id AND student_id = s_student_id 
 		AND status = 'UPDATE';
 	ELSE
+		INSERT INTO Feedbacks(review) 
+		VALUES(reason)
+		RETURNING feedback_id INTO f_id;
+
 		UPDATE Offers
-		SET status = 'REJECTED'
+		SET status = 'REJECTED',feedback_id = f_id
 		WHERE tutor_id = t_tutor_id AND student_id = s_student_id AND status = 'PENDING';
 	END IF;
 END;
@@ -2127,33 +2400,17 @@ BEGIN
 		SELECT *
 		FROM EnrolledIn
 		WHERE student_id = s_student_id
-		AND status = 'APPROVED'
 		ORDER BY course_id ASC
 	)LOOP
 		course_list.EXTEND;
 		course_list(course_list.LAST) := GET_COURSE_DETAILS(r.course_id,r.batch_id);
+		course_list(course_list.LAST).status := r.status;
 	END LOOP;
 	return course_list;
 END;
 /
 
-CREATE OR REPLACE PROCEDURE CANCEL_OFFER(
-	t_tutor_id 		Tutors.user_id%TYPE,
-	s_student_id 	Students.user_id%TYPE
-)
-AS
-BEGIN
-	IF IS_TUTION_ACCEPTED(s_student_id,t_tutor_id) = 'YES' THEN
-		DELETE FROM Offers
-		WHERE tutor_id = t_tutor_id AND student_id = s_student_id
-		AND status = 'UPDATE';
-	ELSE
-		DELETE FROM Offers
-		WHERE tutor_id = t_tutor_id AND student_id = s_student_id
-		AND status = 'PENDING';
-	END IF;
-END;
-/
+
 
 CREATE OR REPLACE PROCEDURE RATE_TUTOR(
 	s_student_id 	Students.user_id%TYPE,
