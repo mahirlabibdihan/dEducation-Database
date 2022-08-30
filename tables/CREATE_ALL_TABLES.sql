@@ -6,6 +6,7 @@
 -- END;
 -- /
 -- DROP TABLE Notices;
+DROP TABLE RESET_PASS;
 DROP TABLE Notices;
 -- DROP TABLE Tutor_Notices;
 -- DROP TABLE Coaching_Notices;
@@ -79,8 +80,8 @@ CREATE TABLE Tutions (
 	days_per_week NUMBER,
 	type 					VARCHAR2(100) NOT NULL,
 	class_days		VARCHAR2(100),	
-	start_time		TIMESTAMP(0),	
-	end_time			TIMESTAMP(0),	
+	start_time		DATE,	
+	end_time			DATE,	
 	start_date		DATE
 );
 
@@ -159,8 +160,8 @@ CREATE TABLE  Batches(
 	seats					NUMBER NOT NULL,
 	students			NUMBER DEFAULT 0,
 	class_days		VARCHAR2(100) NOT NULL,	
-	start_time		TIMESTAMP(0),
-	end_time 			TIMESTAMP(0)
+	start_time		DATE,
+	end_time 			DATE
 );
 
 CREATE TABLE  EnrolledIn(
@@ -220,6 +221,11 @@ CREATE TABLE Materials (
 	timestamp 			DATE DEFAULT SYSDATE
 );
 
+CREATE TABLE RESET_PASS (
+	reset_id 				NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY ,
+	email 					VARCHAR2(100),
+	token						VARCHAR2(1024)
+);
 -- CREATE TABLE Coaching_Notices (
 -- 	notice_id 			NUMBER PRIMARY KEY,
 -- 	coaching_id			NUMBER NOT NULL,

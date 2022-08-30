@@ -162,7 +162,7 @@ BEGIN
 				r.salary,
 				r.days_per_week,
 				r.type,
-				r.timestamp,
+				TO_CHAR(r.timestamp,'DD/MON/YYYY HH24:MI:SS'),
 				0,
 				r.booking_status,
 				r.selected_tutor);
@@ -351,7 +351,7 @@ BEGIN
 				r.class,
 				r.subject,
 				r.text,
-				r.timestamp
+				TO_CHAR(r.timestamp,'DD/MON/YYYY HH24:MI:SS')
 		);
 	END LOOP;
 	return notice_row;
@@ -376,7 +376,7 @@ END;
 -- 				r.class,
 -- 				r.subject,
 -- 				r.text,
--- 				r.timestamp
+-- 				TO_CHAR(r.timestamp,'DD/MON/YYYY HH24:MI:SS')
 -- 		);
 -- 	END LOOP;
 -- 	return notice_row;
@@ -412,13 +412,13 @@ AS
 schedule_list SCHEDULE_ARRAY := SCHEDULE_ARRAY();
 BEGIN
 	FOR r IN (
-		SELECT start_date, class_days, start_time, end_time, name, image, subjects
+		SELECT start_date, class_days, start_time, end_time, tutor_id as entity_id, name, image, subjects
 		FROM Offers NATURAL JOIN Tutions 
 		JOIN Users ON tutor_id = user_id
 		WHERE student_id = s_student_id
 		AND status = 'ACCEPTED'
 		UNION
-		SELECT start_date, class_days, start_time, end_time, name, image, subject AS subjects
+		SELECT start_date, class_days, start_time, end_time, -1 as entity_id, name, image, subject AS subjects
 		FROM EnrolledIn 
 		NATURAL JOIN Coachings
 		NATURAL JOIN Courses
@@ -428,7 +428,7 @@ BEGIN
 		ORDER BY start_time ASC
 	)LOOP
 	schedule_list.EXTEND;
-	schedule_list(schedule_list.LAST) := SCHEDULE(r.start_date,r.class_days,r.start_time,r.end_time,r.name,r.image,r.subjects);
+	schedule_list(schedule_list.LAST) := SCHEDULE(TO_CHAR(r.start_date,'DD/MON/YYYY'),r.class_days,TO_CHAR(r.start_time,'DD/MON/YYYY HH24:MI:SS'),TO_CHAR(r.end_time,'DD/MON/YYYY HH24:MI:SS'),r.entity_id, r.name,r.image,r.subjects);
 	END LOOP;
 	return schedule_list;
 END;
@@ -442,19 +442,13 @@ AS
 schedule_list SCHEDULE_ARRAY := SCHEDULE_ARRAY();
 BEGIN
 	FOR r IN (
-		SELECT *
+		SELECT start_date, class_days, start_time, end_time, tutor_id as entity_id, name, image, subjects
 		FROM Offers NATURAL JOIN Tutions 
 		JOIN Users ON tutor_id = user_id
 		WHERE student_id = s_student_id
 		AND (status <> 'CANCELLED' AND status <> 'REJECTED')
-		ORDER BY start_time ASC
-	)LOOP
-	schedule_list.EXTEND;
-	schedule_list(schedule_list.LAST) := SCHEDULE(r.start_date,r.class_days,r.start_time,r.end_time,r.name,r.image,r.subjects);
-	END LOOP;
-	
-	FOR r IN (
-		SELECT *
+		UNION
+		SELECT start_date, class_days, start_time, end_time, -1 as entity_id, name, image, subject AS subjects
 		FROM EnrolledIn 
 		NATURAL JOIN Coachings
 		NATURAL JOIN Courses
@@ -463,7 +457,7 @@ BEGIN
 		ORDER BY start_time ASC
 	)LOOP
 	schedule_list.EXTEND;
-	schedule_list(schedule_list.LAST) := SCHEDULE(r.start_date,r.class_days,r.start_time,r.end_time,r.name,r.image,r.subject);
+	schedule_list(schedule_list.LAST) := SCHEDULE(TO_CHAR(r.start_date,'DD/MON/YYYY'),r.class_days,TO_CHAR(r.start_time,'DD/MON/YYYY HH24:MI:SS'),TO_CHAR(r.end_time,'DD/MON/YYYY HH24:MI:SS'),r.entity_id, r.name,r.image,r.subjects);
 	END LOOP;
 	return schedule_list;
 END;
@@ -485,7 +479,7 @@ BEGIN
 		ORDER BY start_time ASC
 	)LOOP
 	schedule_list.EXTEND;
-	schedule_list(schedule_list.LAST) := SCHEDULE(r.start_date,r.class_days,r.start_time,r.end_time,r.name,r.image,r.subjects);
+	schedule_list(schedule_list.LAST) := SCHEDULE(TO_CHAR(r.start_date,'DD/MON/YYYY'),r.class_days,TO_CHAR(r.start_time,'DD/MON/YYYY HH24:MI:SS'),TO_CHAR(r.end_time,'DD/MON/YYYY HH24:MI:SS'),r.student_id, r.name,r.image,r.subjects);
 	END LOOP;
 	return schedule_list;
 END;
@@ -507,7 +501,7 @@ BEGIN
 		ORDER BY start_time ASC
 	)LOOP
 	schedule_list.EXTEND;
-	schedule_list(schedule_list.LAST) := SCHEDULE(r.start_date,r.class_days,r.start_time,r.end_time,r.name,r.image,r.subjects);
+	schedule_list(schedule_list.LAST) := SCHEDULE(TO_CHAR(r.start_date,'DD/MON/YYYY'),r.class_days,TO_CHAR(r.start_time,'DD/MON/YYYY HH24:MI:SS'),TO_CHAR(r.end_time,'DD/MON/YYYY HH24:MI:SS'),r.student_id, r.name,r.image,r.subjects);
 	END LOOP;
 	return schedule_list;
 END;
@@ -549,7 +543,7 @@ BEGIN
 				r.image,
 				r.text,
 				r.url,
-				r.timestamp,
+				TO_CHAR(r.timestamp,'DD/MON/YYYY HH24:MI:SS'),
 				r.seen
 		);
 	END LOOP;
@@ -599,7 +593,8 @@ BEGIN
 	SELECT status INTO o_status
 	FROM Offers 
 	WHERE student_id = s_student_id
-	AND tutor_id = t_tutor_id;
+	AND tutor_id = t_tutor_id
+	AND (status = 'ACCEPTED' OR status = 'PENDING');
 	return 'YES';
 EXCEPTION
 	WHEN OTHERS THEN
@@ -913,7 +908,7 @@ BEGIN
 			r.image,
 			r.gender,
 			r.phone_number,
-			r.date_of_birth,
+			TO_CHAR(r.date_of_birth,'MM/DD/YYYY'),
 			r.institution,
 			r.version,
 			r.class,
@@ -1137,7 +1132,7 @@ BEGIN
 			r.image,
 			r.gender,
 			r.phone_number,
-			r.date_of_birth,
+			TO_CHAR(r.date_of_birth,'MM/DD/YYYY'),
 			r.expertise,
 			r.availability,
 			r.years_of_experience,
@@ -1168,27 +1163,27 @@ BEGIN
 END;	
 /
 
-CREATE OR REPLACE FUNCTION GET_ALL_EDUCATIONS
-return EDUCATION_2D_ARRAY
-AS
-	education_list 	EDUCATION_2D_ARRAY := EDUCATION_2D_ARRAY();
-	education		 		EDUCATION_ARRAY := EDUCATION_ARRAY();
-BEGIN
+-- CREATE OR REPLACE FUNCTION GET_ALL_EDUCATIONS
+-- return EDUCATION_2D_ARRAY
+-- AS
+-- 	education_list 	EDUCATION_2D_ARRAY := EDUCATION_2D_ARRAY();
+-- 	education		 		EDUCATION_ARRAY := EDUCATION_ARRAY();
+-- BEGIN
+-- -- 		education_list.EXTEND;
+-- -- 		education := GET_EDUCATIONS(5);
+-- -- 		education_list(education_list.LAST) := education;
+-- 	FOR r IN (
+-- 		SELECT * 	 	
+-- 		FROM Tutors
+-- 		ORDER BY user_id ASC
+-- 	)LOOP	
 -- 		education_list.EXTEND;
--- 		education := GET_EDUCATIONS(5);
--- 		education_list(education_list.LAST) := education;
-	FOR r IN (
-		SELECT * 	 	
-		FROM Tutors
-		ORDER BY user_id ASC
-	)LOOP	
-		education_list.EXTEND;
-		education_list(education_list.LAST) := GET_EDUCATIONS(r.user_id);
-	END LOOP;
-	return education_list;
-END;	
-/
-
+-- 		education_list(education_list.LAST) := GET_EDUCATIONS(r.user_id);
+-- 	END LOOP;
+-- 	return education_list;
+-- END;	
+-- /
+-- 
 CREATE OR REPLACE FUNCTION GET_FILTERED_TUTORS(
 	u_gender			Users.gender%TYPE,
 	t_start				Tutions.salary%TYPE,
@@ -1216,33 +1211,33 @@ BEGIN
 END;	
 /
 
-CREATE OR REPLACE FUNCTION GET_FILTERED_EDUCATIONS(
-	u_gender			Users.gender%TYPE,
-	t_start				Tutions.salary%TYPE,
-	t_end					Tutions.salary%TYPE,
-	t_status			Tutors.availability%TYPE,
-	t_experience	Tutors.years_of_experience%TYPE
-)
-return EDUCATION_2D_ARRAY
-AS
-	education_list EDUCATION_2D_ARRAY := EDUCATION_2D_ARRAY();
-BEGIN
-	FOR r IN (
-		SELECT * 	 	
-		FROM Tutors NATURAL JOIN Users
-		WHERE (u_gender = 'Any' OR gender = u_gender)
-		AND	preffered_salary >= t_start AND preffered_salary <= t_end
-		AND (t_status = 'Any' OR availability = t_status)
-		AND years_of_experience >= t_experience
-		ORDER BY user_id ASC
-	)LOOP
-		education_list.EXTEND;
-		education_list(education_list.LAST) := GET_EDUCATIONS(r.user_id);
-	END LOOP;
-	return education_list;
-END;	
-/
-
+-- CREATE OR REPLACE FUNCTION GET_FILTERED_EDUCATIONS(
+-- 	u_gender			Users.gender%TYPE,
+-- 	t_start				Tutions.salary%TYPE,
+-- 	t_end					Tutions.salary%TYPE,
+-- 	t_status			Tutors.availability%TYPE,
+-- 	t_experience	Tutors.years_of_experience%TYPE
+-- )
+-- return EDUCATION_2D_ARRAY
+-- AS
+-- 	education_list EDUCATION_2D_ARRAY := EDUCATION_2D_ARRAY();
+-- BEGIN
+-- 	FOR r IN (
+-- 		SELECT * 	 	
+-- 		FROM Tutors NATURAL JOIN Users
+-- 		WHERE (u_gender = 'Any' OR gender = u_gender)
+-- 		AND	preffered_salary >= t_start AND preffered_salary <= t_end
+-- 		AND (t_status = 'Any' OR availability = t_status)
+-- 		AND years_of_experience >= t_experience
+-- 		ORDER BY user_id ASC
+-- 	)LOOP
+-- 		education_list.EXTEND;
+-- 		education_list(education_list.LAST) := GET_EDUCATIONS(r.user_id);
+-- 	END LOOP;
+-- 	return education_list;
+-- END;	
+-- /
+-- 
 CREATE OR REPLACE FUNCTION GET_MY_TUTORS(
 	s_student_id 	Students.user_id%TYPE
 )
@@ -1402,7 +1397,7 @@ BEGIN
 		AND student_id = s_student_id
 	)LOOP
 		IF r.status = 'ACCEPTED' THEN
-			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,r.start_time,r.end_time,r.review,r.start_date);
+			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,TO_CHAR(r.start_time,'DD/MON/YYYY HH24:MI:SS'),TO_CHAR(r.end_time,'DD/MON/YYYY HH24:MI:SS'),r.review,TO_CHAR(r.start_date,'DD/MON/YYYY'));
 		END IF;
 	END LOOP;
 	return tution_row;
@@ -1425,9 +1420,9 @@ BEGIN
 		AND student_id = s_student_id
 	)LOOP
 		IF r.status = 'UPDATE' THEN
-			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,r.start_time,r.end_time,r.review,r.start_date);
+			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,TO_CHAR(r.start_time,'DD/MON/YYYY HH24:MI:SS'),TO_CHAR(r.end_time,'DD/MON/YYYY HH24:MI:SS'),r.review,TO_CHAR(r.start_date,'DD/MON/YYYY'));
 		ELSIF tution_row.status IS NULL THEN
-			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,r.start_time,r.end_time,r.review,r.start_date);
+			tution_row := TUTION(r.status, r.subjects, r.salary, r.days_per_week, r.type,r.rating,r.class_days,TO_CHAR(r.start_time,'DD/MON/YYYY HH24:MI:SS'),TO_CHAR(r.end_time,'DD/MON/YYYY HH24:MI:SS'),r.review,TO_CHAR(r.start_date,'DD/MON/YYYY'));
 		END IF;
 	END LOOP;
 	return tution_row;
@@ -1666,6 +1661,24 @@ EXCEPTION
 END;
 /
 
+CREATE or REPLACE PROCEDURE RESET_PASSWORD(
+	u_email			Users.email%TYPE,
+	new_pass		Users.pass%TYPE
+)
+AS
+BEGIN
+	DELETE FROM Reset_Pass
+	WHERE email = u_email;
+	
+	UPDATE Users
+	SET pass = new_pass
+	where email = u_email;
+EXCEPTION
+	WHEN no_data_found THEN
+		RAISE_APPLICATION_ERROR(-20999,'No such user');
+END;
+/
+
 CREATE OR REPLACE FUNCTION GET_COURSE_ID(
 	b_batch_id	Batches.batch_id%TYPE
 )
@@ -1769,12 +1782,12 @@ BEGIN
 	)LOOP
 		batch_row := BATCH(
 				r.batch_id,
-				r.start_date,
+				TO_CHAR(r.start_date,'DD/MON/YYYY'),
 				r.seats,
 				r.students,
 				r.class_days,
-				r.start_time,
-				r.end_time,
+				TO_CHAR(r.start_time,'DD/MON/YYYY HH24:MI:SS'),
+				TO_CHAR(r.end_time,'DD/MON/YYYY HH24:MI:SS'),
 				0,
 				NULL
 		);
@@ -1805,12 +1818,12 @@ BEGIN
 				r.name,
 				r.class,
 				r.subject,
-				r.start_date,
+				TO_CHAR(r.start_date,'DD/MON/YYYY'),
 				r.seats,
 				r.students,
 				r.class_days,
-				r.start_time,
-				r.end_time,
+				TO_CHAR(r.start_time,'DD/MON/YYYY HH24:MI:SS'),
+				TO_CHAR(r.end_time,'DD/MON/YYYY HH24:MI:SS'),
 				0,
 				0,
 				NULL
@@ -1888,6 +1901,7 @@ BEGIN
       WHERE coaching_id = c_coaching_id
       AND class = c_class
       AND subject = c_subject
+			ORDER BY batch_id ASC
 	)LOOP
 		batch_list.EXTEND;
 		batch_list(batch_list.LAST) := GET_BATCH_DETAILS(r.batch_id);
@@ -2232,7 +2246,7 @@ BEGIN
 				r.link,
 				r.name,
 				r.image,
-				r.timestamp
+				TO_CHAR(r.timestamp,'DD/MON/YYYY HH24:MI:SS')
 		);
 	END LOOP;
 	return material_row;
@@ -2530,6 +2544,33 @@ BEGIN
 	FROM Batches 
 	WHERE batch_id = b_batch_id;
 	return seat_count;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE SAVE_RESET_TOKEN(
+	u_email		Users.email%TYPE,
+	token 		VARCHAR2
+)
+AS
+BEGIN
+	DELETE FROM Reset_Pass
+	WHERE email = u_email;
+	INSERT INTO Reset_Pass(email,token)
+	VALUES(u_email,token);
+END;
+/
+
+CREATE OR REPLACE FUNCTION GET_RESET_EMAIL(
+	u_token 		VARCHAR2
+)
+return Users.email%TYPE
+AS
+u_email Users.email%TYPE;
+BEGIN
+	SELECT email INTO u_email
+	FROM Reset_Pass
+	WHERE token = u_token;
+	return u_email;
 END;
 /
 
