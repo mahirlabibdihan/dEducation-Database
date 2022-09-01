@@ -1,6 +1,6 @@
-![dEducation-logo](https://user-images.githubusercontent.com/62663759/187912013-d1653a15-833a-4102-9091-0c9aa96b8505.png)
-
 <h2 align="center">DEDUCATION DATABASE</h3>
+
+![dEducation-logo](https://user-images.githubusercontent.com/62663759/187912013-d1653a15-833a-4102-9091-0c9aa96b8505.png)
 
 ## ERD
 
