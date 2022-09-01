@@ -33,7 +33,7 @@ grant dba to c##deducation;
 
 6. Import data from sql file depending upon the GUI.
 
-7. Import order: a) tables/CREATE_ALL_TABLES.sql b) types/CREATE_TYPES.sql c) triggers/CREATE_TRIGGERS.sql d) functions/CREATE_FUNCTION_PROCEDURES.sql e) GENERATE_SAMPLE_DATA.sql
+7. Import order: a) tables/CREATE_ALL_TABLES.sql b) types/CREATE_TYPES.sql c) triggers/CREATE_TRIGGERS.sql d) functions/CREATE_FUNCTION_PROCEDURES.sql e) data/GENERATE_SAMPLE_DATA.sql
 
 8. If no errors are shown we are good to go!
 
