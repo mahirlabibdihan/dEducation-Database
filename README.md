@@ -22,20 +22,18 @@
    password: password
    ```
 
-3. Create a new user c##squirrel
+3. Create a new user c##deducation
 
 ```sh
 create user c##deducation identified by password;
 grant dba to c##deducation;
 ```
 
-4. Find file dump.sql in `sql/SQL_DUMP.sql`
-
-5. Head over to your favourite database GUI and connect squirrel with that
+5. Head over to your favourite database GUI and connect deducation with that
 
 6. Import data from sql file depending upon the GUI.
 
-7. The DUMP should work i hope 😩
+7. Import order: a) tables/CREATE_ALL_TABLES.sql b) types/CREATE_TYPES.sql c) triggers/CREATE_TRIGGERS.sql d) functions/CREATE_FUNCTION_PROCEDURES.sql e) GENERATE_SAMPLE_DATA.sql
 
 8. If no errors are shown we are good to go!
 
