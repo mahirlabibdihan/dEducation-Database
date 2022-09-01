@@ -2,16 +2,16 @@
 
 <h2 align="center">DEDUCATION DATABASE</h3>
 
-#### ERD
+## ERD
 
 ![Copy of Hidden-Brain-ERD2 drawio(1)](https://user-images.githubusercontent.com/62663759/187882258-1113fcee-3f99-48c1-94b5-bcc7544dcc7d.png)
 
-#### Languages, Tools and Frameworks:<a name="tools"></a>
+## Languages, Tools and Frameworks:<a name="tools"></a>
 
 - Oracle 19C
 - Navicat Premium
 
-#### Setting up the database
+## Setting up the database
 
 1. Go to sql plus
 
