@@ -43,7 +43,7 @@ create user c##deducation identified by password;
 grant dba to c##deducation;
 ```
 
-5. Head over to your favourite database GUI and connect deducation with that
+5. Head over to your favourite database GUI and connect deducation with that.
 
 6. Import data from sql file depending upon the GUI.
 
